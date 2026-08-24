@@ -1,0 +1,533 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>AI Vision Assistant</title>
+
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            min-height: 100vh;
+            font-family: Arial, Helvetica, sans-serif;
+            background: #f4f6f9;
+            color: #1f2937;
+
+            display: flex;
+            justify-content: center;
+            align-items: center;
+
+            padding: 24px;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 760px;
+
+            background: #ffffff;
+            border-radius: 24px;
+
+            padding: 40px;
+
+            box-shadow:
+                0 12px 35px rgba(0, 0, 0, 0.08);
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 32px;
+        }
+
+        .header h1 {
+            margin: 0 0 10px;
+            font-size: 36px;
+            line-height: 1.2;
+            color: #111827;
+        }
+
+        .header p {
+            margin: 0;
+            font-size: 16px;
+            color: #6b7280;
+        }
+
+        .upload-box {
+            width: 100%;
+            min-height: 240px;
+
+            border: 2px dashed #aeb4bd;
+            border-radius: 18px;
+
+            background: #fafbfc;
+
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+
+            text-align: center;
+
+            padding: 35px 20px;
+
+            cursor: pointer;
+
+            transition:
+                border-color 0.2s ease,
+                background-color 0.2s ease,
+                transform 0.2s ease;
+        }
+
+        .upload-box:hover {
+            border-color: #4b5563;
+            background: #f5f6f8;
+        }
+
+        .upload-box.drag-over {
+            border-color: #111827;
+            background: #f0f1f3;
+            transform: scale(1.01);
+        }
+
+        .upload-icon {
+            font-size: 48px;
+            margin-bottom: 16px;
+        }
+
+        .upload-title {
+            font-size: 18px;
+            font-weight: 700;
+            color: #111827;
+            margin-bottom: 8px;
+        }
+
+        .upload-subtitle {
+            font-size: 14px;
+            color: #6b7280;
+        }
+
+        .upload-input {
+            display: none;
+        }
+
+        .preview-container {
+            display: none;
+
+            margin-top: 28px;
+
+            padding: 20px;
+
+            border: 1px solid #e5e7eb;
+            border-radius: 18px;
+
+            background: #fafafa;
+
+            text-align: center;
+        }
+
+        .preview-container.visible {
+            display: block;
+        }
+
+        .preview-image {
+            display: block;
+
+            width: auto;
+            max-width: 100%;
+            max-height: 400px;
+
+            margin: 0 auto 16px;
+
+            border-radius: 12px;
+
+            object-fit: contain;
+
+            background: #ffffff;
+        }
+
+        .filename {
+            margin: 0 0 18px;
+
+            font-size: 14px;
+            color: #4b5563;
+
+            word-break: break-word;
+        }
+
+        .button-group {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .button {
+            border: none;
+            border-radius: 10px;
+
+            padding: 12px 20px;
+
+            font-size: 14px;
+            font-weight: 600;
+
+            cursor: pointer;
+
+            transition:
+                transform 0.15s ease,
+                opacity 0.15s ease;
+        }
+
+        .button:hover:not(:disabled) {
+            transform: translateY(-1px);
+        }
+
+        .button:disabled {
+            opacity: 0.45;
+            cursor: not-allowed;
+        }
+
+        .remove-button {
+            background: #e5e7eb;
+            color: #111827;
+        }
+
+        .analyze-button {
+            background: #111827;
+            color: #ffffff;
+        }
+
+        .status {
+            margin: 24px 0 0;
+
+            text-align: center;
+
+            font-size: 13px;
+            line-height: 1.5;
+
+            color: #6b7280;
+        }
+
+        .footer {
+            margin-top: 28px;
+
+            text-align: center;
+
+            font-size: 12px;
+            color: #9ca3af;
+        }
+
+        @media (max-width: 600px) {
+            body {
+                padding: 14px;
+            }
+
+            .container {
+                padding: 25px 18px;
+                border-radius: 18px;
+            }
+
+            .header h1 {
+                font-size: 28px;
+            }
+
+            .upload-box {
+                min-height: 210px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <main class="container">
+
+        <header class="header">
+            <h1>AI Vision Assistant</h1>
+
+            <p>
+                Upload an image and explore it with AI.
+            </p>
+        </header>
+
+
+        <!-- Image Upload Area -->
+
+        <label
+            class="upload-box"
+            id="uploadBox"
+            for="imageInput"
+        >
+
+            <div class="upload-icon">
+                📷
+            </div>
+
+            <div class="upload-title">
+                Click to upload an image
+            </div>
+
+            <div class="upload-subtitle">
+                or drag and drop
+            </div>
+
+            <div class="upload-subtitle">
+                JPG, PNG or WEBP
+            </div>
+
+            <input
+                class="upload-input"
+                id="imageInput"
+                type="file"
+                accept="image/jpeg, image/png, image/webp"
+            >
+
+        </label>
+
+
+        <!-- Image Preview -->
+
+        <section
+            class="preview-container"
+            id="previewContainer"
+        >
+
+            <img
+                class="preview-image"
+                id="previewImage"
+                alt="Selected image preview"
+            >
+
+            <p
+                class="filename"
+                id="filename"
+            ></p>
+
+            <div class="button-group">
+
+                <button
+                    class="button remove-button"
+                    id="removeButton"
+                    type="button"
+                >
+                    Remove Image
+                </button>
+
+                <button
+                    class="button analyze-button"
+                    id="analyzeButton"
+                    type="button"
+                    disabled
+                >
+                    Analyze Image
+                </button>
+
+            </div>
+
+        </section>
+
+
+        <p
+            class="status"
+            id="status"
+        >
+            Gemini AI integration will be connected after the frontend is ready.
+        </p>
+
+
+        <footer class="footer">
+            AI Vision Assistant • Project 1
+        </footer>
+
+    </main>
+
+
+    <script>
+
+        const imageInput = document.getElementById("imageInput");
+
+        const uploadBox = document.getElementById("uploadBox");
+
+        const previewContainer =
+            document.getElementById("previewContainer");
+
+        const previewImage =
+            document.getElementById("previewImage");
+
+        const filename =
+            document.getElementById("filename");
+
+        const removeButton =
+            document.getElementById("removeButton");
+
+        const analyzeButton =
+            document.getElementById("analyzeButton");
+
+        const status =
+            document.getElementById("status");
+
+
+        let selectedFile = null;
+
+        let imageURL = null;
+
+
+        function showImage(file) {
+
+            if (!file) {
+                return;
+            }
+
+
+            const allowedTypes = [
+                "image/jpeg",
+                "image/png",
+                "image/webp"
+            ];
+
+
+            if (!allowedTypes.includes(file.type)) {
+
+                alert(
+                    "Please select a JPG, PNG or WEBP image."
+                );
+
+                imageInput.value = "";
+
+                return;
+            }
+
+
+            selectedFile = file;
+
+
+            if (imageURL) {
+                URL.revokeObjectURL(imageURL);
+            }
+
+
+            imageURL = URL.createObjectURL(file);
+
+
+            previewImage.src = imageURL;
+
+            filename.textContent =
+                `Selected: ${file.name}`;
+
+
+            previewContainer.classList.add("visible");
+
+            analyzeButton.disabled = false;
+
+
+            status.textContent =
+                "Image selected successfully. Ready for analysis.";
+        }
+
+
+        imageInput.addEventListener(
+            "change",
+            function () {
+
+                const file = this.files[0];
+
+                showImage(file);
+
+            }
+        );
+
+
+        removeButton.addEventListener(
+            "click",
+            function () {
+
+                if (imageURL) {
+
+                    URL.revokeObjectURL(imageURL);
+
+                    imageURL = null;
+                }
+
+
+                selectedFile = null;
+
+                imageInput.value = "";
+
+                previewImage.removeAttribute("src");
+
+                filename.textContent = "";
+
+                previewContainer.classList.remove("visible");
+
+                analyzeButton.disabled = true;
+
+
+                status.textContent =
+                    "Gemini AI integration will be connected after the frontend is ready.";
+            }
+        );
+
+
+        analyzeButton.addEventListener(
+            "click",
+            function () {
+
+                if (!selectedFile) {
+                    return;
+                }
+
+
+                alert(
+                    "Image upload is working! Gemini analysis will be connected in the next development step."
+                );
+            }
+        );
+
+
+        uploadBox.addEventListener(
+            "dragover",
+            function (event) {
+
+                event.preventDefault();
+
+                uploadBox.classList.add("drag-over");
+            }
+        );
+
+
+        uploadBox.addEventListener(
+            "dragleave",
+            function () {
+
+                uploadBox.classList.remove("drag-over");
+            }
+        );
+
+
+        uploadBox.addEventListener(
+            "drop",
+            function (event) {
+
+                event.preventDefault();
+
+                uploadBox.classList.remove("drag-over");
+
+
+                const file =
+                    event.dataTransfer.files[0];
+
+
+                if (file) {
+
+                    showImage(file);
+                }
+            }
+        );
+
+    </script>
+
+</body>
+</html>
