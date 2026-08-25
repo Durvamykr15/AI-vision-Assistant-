@@ -471,20 +471,63 @@
         );
 
 
-        analyzeButton.addEventListener(
-            "click",
-            function () {
+analyzeButton.addEventListener(
+    "click",
+    async function () {
 
-                if (!selectedFile) {
-                    return;
+        if (!selectedFile) {
+            return;
+        }
+
+        analyzeButton.disabled = true;
+
+        status.textContent = "Sending image to backend...";
+
+        try {
+
+            const formData = new FormData();
+
+            formData.append("file", selectedFile);
+
+
+            const response = await fetch(
+                "http://127.0.0.1:8000/analyze",
+                {
+                    method: "POST",
+                    body: formData
                 }
+            );
 
 
-                alert(
-                    "Image upload is working! Gemini analysis will be connected in the next development step."
-                );
+            if (!response.ok) {
+                throw new Error("Backend request failed.");
             }
-        );
+
+
+            const result = await response.json();
+
+
+            status.textContent =
+                `Backend received: ${result.filename}`;
+
+
+            console.log("Backend response:", result);
+
+        } catch (error) {
+
+            console.error(error);
+
+            status.textContent =
+                "Could not connect to the backend.";
+
+        } finally {
+
+            analyzeButton.disabled = false;
+
+        }
+
+    }
+);
 
 
         uploadBox.addEventListener(
